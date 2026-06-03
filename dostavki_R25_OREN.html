@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Доставки Р25 Оренбург | Канбан-доска группы 84</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+            background: #eef2f7;
+            margin: 0;
+            padding: 20px;
+        }
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+            background: white;
+            padding: 12px 24px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .header-left {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e2a3a;
+        }
+        .task-counter {
+            background: #e9edf2;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1e4663;
+        }
+        .last-updated {
+            font-size: 0.7rem;
+            color: #7e95ae;
+        }
+        .header-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .refresh-btn {
+            background: linear-gradient(135deg, #2c7da0, #3c8db0);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+        .refresh-btn:hover {
+            background: linear-gradient(135deg, #1e5a7a, #2c7da0);
+            transform: translateY(-1px);
+        }
+        .refresh-btn.loading {
+            opacity: 0.6;
+            cursor: wait;
+            pointer-events: none;
+        }
+        .call-courier-btn {
+            background: linear-gradient(135deg, #e67e22, #f39c12);
+            border: none;
+            padding: 8px 24px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+            box-shadow: 0 2px 6px rgba(230,126,34,0.3);
+        }
+        .call-courier-btn:hover {
+            background: linear-gradient(135deg, #d35400, #e67e22);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(230,126,34,0.4);
+        }
+        .call-courier-btn:active {
+            transform: translateY(1px);
+        }
+        .kanban-board {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        .column {
+            background: #f8fafd;
+            border-radius: 20px;
+            width: 350px;
+            min-width: 350px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
+        }
+        .column-header {
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .column h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1a3b4f;
+            background: #eef2fa;
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+        .badge-count {
+            background: #dce3ec;
+            color: #1f4970;
+            border-radius: 30px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .task-list {
+            min-height: 400px;
+            padding: 12px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .task-card {
+            background: white;
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid #eef2f9;
+        }
+        .task-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .task-card.distribution-task {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+        .task-card.distribution-task:hover {
+            background: #c8e6c9;
+        }
+        .task-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            color: #1a2c3e;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+        .task-closed-date {
+            font-size: 0.65rem;
+            color: #a68a3c;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .responsible {
+            font-size: 0.75rem;
+            color: #4a627a;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            border-top: 1px solid #eef2f0;
+            padding-top: 6px;
+        }
+        .responsible:before {
+            content: "👤";
+            font-size: 0.75rem;
+        }
+        .empty-placeholder {
+            text-align: center;
+            color: #9aaebf;
+            font-size: 0.8rem;
+            padding: 24px;
+            background: #f1f5f9;
+            border-radius: 20px;
+            font-style: italic;
+        }
+        .loader-overlay {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: #2c6280;
+            background: white;
+            border-radius: 28px;
+            width: 100%;
+            gap: 12px;
+        }
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #2c7da0;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #7e95ae;
+        }
+        .column.completed-column .task-card {
+            background: #fef9e6;
+            border-left: 3px solid #d4a017;
+        }
+        .progress-container {
+            background: white;
+            border-radius: 20px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .progress-bar-wrapper {
+            background: #e2e8f0;
+            border-radius: 20px;
+            height: 6px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            background: #2c7da0;
+            width: 0%;
+            height: 100%;
+            transition: width 0.2s;
+        }
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 0.7rem;
+            color: #2c6280;
+        }
+
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .auth-modal {
+            background: white;
+            border-radius: 28px;
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: modalFadeIn 0.3s ease;
+        }
+        .auth-modal h2 {
+            margin: 0 0 10px 0;
+            color: #1e2a3a;
+        }
+        .auth-modal p {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .auth-modal input {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 40px;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.2s;
+        }
+        .auth-modal input:focus {
+            border-color: #2c7da0;
+        }
+        .auth-modal button {
+            background: linear-gradient(135deg, #2c7da0, #3c8db0);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+        }
+        .auth-modal button:hover {
+            transform: translateY(-1px);
+        }
+        .error-msg {
+            color: #e74c3c;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            display: none;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(3px);
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-container {
+            background: white;
+            border-radius: 28px;
+            width: 90%;
+            max-width: 800px;
+            height: 85vh;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #e67e22, #f39c12);
+            color: white;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        .modal-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover {
+            background: rgba(255,255,255,0.4);
+        }
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+        .modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .main-content {
+            display: none;
+        }
+        .main-content.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="auth-overlay" id="authOverlay">
+    <div class="auth-modal">
+        <h2>🔐 Авторизация</h2>
+        <p>Введите логин и пароль для доступа к доске</p>
+        <input type="text" id="authLogin" placeholder="Логин" autocomplete="off">
+        <input type="password" id="authPassword" placeholder="Пароль">
+        <button id="authBtn">Войти</button>
+        <div class="error-msg" id="authError">Неверный логин или пароль</div>
+    </div>
+</div>
+
+<div class="main-content" id="mainContent">
+<div class="dashboard">
+    <div class="header">
+        <div class="header-left">
+            <h1>📦 Доставки Р25 Оренбург · группа 84</h1>
+            <div class="task-counter" id="tasks-total-badge">Загрузка...</div>
+            <div class="last-updated" id="last-updated"></div>
+        </div>
+        <div class="header-buttons">
+            <button class="call-courier-btn" id="call-courier-btn">🚚 Вызвать курьера</button>
+            <button class="refresh-btn" id="refresh-btn">🔄 Обновить</button>
+        </div>
+    </div>
+
+    <div class="progress-container" id="progress-container">
+        <div class="progress-text">
+            <span id="progress-label">Загрузка...</span>
+            <span id="progress-percent">0%</span>
+        </div>
+        <div class="progress-bar-wrapper"><div class="progress-bar-fill" id="progress-bar-fill"></div></div>
+    </div>
+
+    <div class="kanban-board" id="kanban-board">
+        <div class="loader-overlay"><div class="spinner"></div><div>Загрузка данных...</div></div>
+    </div>
+    <footer>📌 «На распределении» — активные задачи (светло-зелёная подсветка). «Курьер назначен» — активные задачи. «Доставка завершена» — последние 30 по дате закрытия.</footer>
+</div>
+</div>
+
+<div id="courierModal" class="modal-overlay">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3>🚚 Вызов курьера</h3>
+            <button class="modal-close" id="modalCloseBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <iframe id="courierIframe" src="about:blank" title="Форма вызова курьера"></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    // ========== НАСТРОЙКИ АВТОРИЗАЦИИ ==========
+    const VALID_LOGIN = "TT";
+    const VALID_PASSWORD = "EDC980848";
+    // ==========================================
+
+    // ПРИНУДИТЕЛЬНАЯ ОЧИСТКА СТАРОГО КЭША
+    const oldCacheKeys = ['kanban_v6', 'kanban_v5', 'kanban_v4', 'kanban_v3', 'kanban_v2', 'kanban_v1'];
+    for (const key of oldCacheKeys) {
+        if (localStorage.getItem(key)) {
+            localStorage.removeItem(key);
+            console.log(`🗑️ Удалён старый кэш: ${key}`);
+        }
+    }
+    // Очистка старой сессии авторизации
+    if (sessionStorage.getItem('kanban_auth')) {
+        sessionStorage.removeItem('kanban_auth');
+        console.log('🗑️ Удалена старая сессия авторизации');
+    }
+
+    const webhookUrl = 'https://1cv.bitrix24.ru/rest/19092/0be5y5ywbebarl2g/';
+    const GROUP_ID = 84;
+    const CACHE_KEY = 'kanban_v7_84';
+    const CACHE_DURATION = 2 * 60 * 1000;
+
+    let distributionStageId = null;
+    let courierStageId = null;
+    let completedStageId = null;
+    let isLoading = false;
+    let columnsMap = new Map();
+
+    const authOverlay = document.getElementById('authOverlay');
+    const authLogin = document.getElementById('authLogin');
+    const authPassword = document.getElementById('authPassword');
+    const authBtn = document.getElementById('authBtn');
+    const authError = document.getElementById('authError');
+    const mainContent = document.getElementById('mainContent');
+
+    function checkAuth() {
+        const savedAuth = sessionStorage.getItem('kanban_auth_84');
+        if (savedAuth === 'true') {
+            authOverlay.style.display = 'none';
+            mainContent.classList.add('visible');
+            initKanban();
+        } else {
+            authOverlay.style.display = 'flex';
+            mainContent.classList.remove('visible');
+        }
+    }
+
+    function doLogin() {
+        const login = authLogin.value.trim();
+        const password = authPassword.value.trim();
+        
+        if (login === VALID_LOGIN && password === VALID_PASSWORD) {
+            sessionStorage.setItem('kanban_auth_84', 'true');
+            authError.style.display = 'none';
+            authOverlay.style.display = 'none';
+            mainContent.classList.add('visible');
+            initKanban();
+        } else {
+            authError.style.display = 'block';
+            authLogin.value = '';
+            authPassword.value = '';
+            authLogin.focus();
+        }
+    }
+
+    authPassword.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') doLogin();
+    });
+    authBtn.onclick = doLogin;
+
+    const boardDiv = document.getElementById('kanban-board');
+    const totalBadge = document.getElementById('tasks-total-badge');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const callCourierBtn = document.getElementById('call-courier-btn');
+    const lastUpdatedSpan = document.getElementById('last-updated');
+    const progressContainer = document.getElementById('progress-container');
+    const progressFill = document.getElementById('progress-bar-fill');
+    const progressLabel = document.getElementById('progress-label');
+    const progressPercent = document.getElementById('progress-percent');
+
+    const modal = document.getElementById('courierModal');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const iframe = document.getElementById('courierIframe');
+
+    function openModal() {
+        iframe.src = 'https://b24-022gna.bitrix24site.ru/crm_form_g2e0p/';
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        setTimeout(() => { iframe.src = 'about:blank'; }, 300);
+    }
+
+    if (callCourierBtn) callCourierBtn.onclick = openModal;
+    if (modalCloseBtn) modalCloseBtn.onclick = closeModal;
+    if (modal) modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal && modal.classList.contains('active')) closeModal();
+    });
+
+    function updateProgress(percent, label) {
+        if (progressContainer) {
+            progressContainer.style.display = 'block';
+            progressFill.style.width = percent + '%';
+            progressPercent.innerText = Math.round(percent) + '%';
+            progressLabel.innerText = label;
+        }
+    }
+    function hideProgress() { if (progressContainer) progressContainer.style.display = 'none'; }
+    function setLoading(loading) {
+        isLoading = loading;
+        if (refreshBtn) {
+            refreshBtn.classList.toggle('loading', loading);
+            refreshBtn.innerHTML = loading ? '⏳ Загрузка...' : '🔄 Обновить';
+        }
+    }
+    function formatDate(d) {
+        if (!d) return '';
+        try { return new Date(d).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}); }
+        catch(e) { return d.substring(0,16); }
+    }
+    function escapeHtml(s) { return String(s || '').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+
+    async function fetchJson(url, timeout=8000) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeout);
+        try {
+            const res = await fetch(url, { signal: controller.signal });
+            clearTimeout(timer);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            if (data.error) throw new Error(data.error_description);
+            return data;
+        } catch(e) {
+            clearTimeout(timer);
+            throw e;
+        }
+    }
+
+    async function fetchStageIds() {
+        const url = `${webhookUrl}task.stages.get.json?entityId=${GROUP_ID}&entityType=G`;
+        const data = await fetchJson(url);
+        const stages = Object.values(data.result);
+        
+        distributionStageId = null;
+        courierStageId = null;
+        completedStageId = null;
+        
+        for (const s of stages) {
+            const title = s.TITLE;
+            if (title === "На распределении") distributionStageId = String(s.ID);
+            else if (title === "Курьер назначен") courierStageId = String(s.ID);
+            else if (title === "Доставка завершена") completedStageId = String(s.ID);
+        }
+        return { distributionStageId, courierStageId, completedStageId };
+    }
+
+    async function fetchActiveTasksForStage(stageId) {
+        if (!stageId) return [];
+        let allTasks = [];
+        let start = 0;
+        let hasNext = true;
+        while (hasNext) {
+            const url = `${webhookUrl}tasks.task.list.json?filter[GROUP_ID]=${GROUP_ID}&filter[STAGE_ID]=${stageId}&select[]=id&select[]=title&select[]=responsibleName&select[]=status&select[]=closedDate&start=${start}`;
+            const response = await fetchJson(url);
+            const tasks = response.result.tasks || [];
+            allTasks = allTasks.concat(tasks);
+            if (response.next && response.next > start) start = response.next;
+            else hasNext = false;
+        }
+        const activeTasks = allTasks.filter(t => {
+            const isClosed = t.closedDate || t.status === 5 || t.status === '5';
+            return !isClosed;
+        });
+        return activeTasks.map(t => ({
+            id: t.id,
+            title: t.title || 'Без названия',
+            stageId: stageId,
+            responsibleName: t.responsibleName || 'Не назначен'
+        }));
+    }
+
+    async function fetchLastCompletedTasks() {
+        if (!completedStageId) return [];
+        let allTasks = [];
+        let start = 0;
+        let hasNext = true;
+        while (hasNext && allTasks.length < 100) {
+            const url = `${webhookUrl}tasks.task.list.json?filter[GROUP_ID]=${GROUP_ID}&filter[STAGE_ID]=${completedStageId}&order[ID]=DESC&select[]=id&select[]=title&select[]=responsibleName&select[]=closedDate&start=${start}`;
+            const response = await fetchJson(url);
+            const tasks = response.result.tasks || [];
+            allTasks = allTasks.concat(tasks);
+            if (response.next && response.next > start && allTasks.length < 100) start = response.next;
+            else hasNext = false;
+        }
+        const completed = allTasks.filter(t => t.closedDate).map(t => ({
+            id: t.id,
+            title: t.title || 'Без названия',
+            stageId: completedStageId,
+            responsibleName: t.responsibleName || 'Не назначен',
+            closedDateRaw: t.closedDate
+        }));
+        completed.sort((a,b) => new Date(b.closedDateRaw) - new Date(a.closedDateRaw));
+        return completed.slice(0, 30);
+    }
+
+    async function loadAllData(forceRefresh = false) {
+        if (!forceRefresh) {
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+                try {
+                    const { data, timestamp } = JSON.parse(cached);
+                    if (Date.now() - timestamp < CACHE_DURATION) return data;
+                } catch(e) {}
+            }
+        }
+        updateProgress(10, "Загрузка стадий...");
+        await fetchStageIds();
+        updateProgress(20, "Загрузка задач...");
+        const [distributionTasks, courierTasks, completedTasks] = await Promise.all([
+            fetchActiveTasksForStage(distributionStageId),
+            fetchActiveTasksForStage(courierStageId),
+            fetchLastCompletedTasks()
+        ]);
+        const allTasks = [...distributionTasks, ...courierTasks, ...completedTasks];
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data: allTasks, timestamp: Date.now() })); } catch(e) {}
+        updateProgress(100, "Готово!");
+        setTimeout(hideProgress, 500);
+        return allTasks;
+    }
+
+    function renderColumns() {
+        if (!boardDiv) return;
+        boardDiv.innerHTML = '';
+        const stages = [
+            { id: distributionStageId, title: "На распределении", completed: false, type: "distribution" },
+            { id: courierStageId, title: "Курьер назначен", completed: false, type: "courier" },
+            { id: completedStageId, title: "Доставка завершена", completed: true, type: "completed" }
+        ];
+        for (const s of stages) {
+            if (!s.id) continue;
+            const col = document.createElement('div');
+            col.className = 'column';
+            if (s.completed) col.classList.add('completed-column');
+            col.innerHTML = `
+                <div class="column-header">
+                    <h3>${escapeHtml(s.title)}</h3>
+                    <span class="badge-count" id="badge-${s.id}">0</span>
+                </div>
+                <div class="task-list" data-stage="${s.id}" id="list-${s.id}"></div>
+            `;
+            boardDiv.appendChild(col);
+            columnsMap.set(s.id, { listDiv: col.querySelector('.task-list'), completed: s.completed, type: s.type });
+        }
+    }
+
+    function renderTasks(tasks) {
+        for (let [id, { listDiv }] of columnsMap.entries()) listDiv.innerHTML = '';
+        const byStage = new Map();
+        for (const t of tasks) {
+            if (!byStage.has(t.stageId)) byStage.set(t.stageId, []);
+            byStage.get(t.stageId).push(t);
+        }
+        let distributionCount = 0, courierCount = 0, completedCount = 0;
+        for (let [stageId, { listDiv, completed, type }] of columnsMap.entries()) {
+            let stageTasks = byStage.get(stageId) || [];
+            if (completed) {
+                stageTasks.sort((a,b) => {
+                    if (a.closedDateRaw && b.closedDateRaw) return new Date(b.closedDateRaw) - new Date(a.closedDateRaw);
+                    return b.id - a.id;
+                });
+                completedCount += stageTasks.length;
+            } else {
+                stageTasks.sort((a,b) => a.id - b.id);
+                if (type === "distribution") distributionCount += stageTasks.length;
+                if (type === "courier") courierCount += stageTasks.length;
+            }
+            if (stageTasks.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'empty-placeholder';
+                empty.innerText = completed ? '📦 Нет завершённых доставок' : '✨ Нет активных задач';
+                listDiv.appendChild(empty);
+            } else {
+                for (const task of stageTasks) {
+                    const card = document.createElement('div');
+                    card.className = 'task-card';
+                    if (type === "distribution") card.classList.add('distribution-task');
+                    let dateHtml = '';
+                    if (completed && task.closedDateRaw) dateHtml = `<div class="task-closed-date">📅 ${formatDate(task.closedDateRaw)}</div>`;
+                    card.innerHTML = `
+                        <div class="task-title">${completed ? '✅ ' : '📌 '}${escapeHtml(task.title)}</div>
+                        ${dateHtml}
+                        <div class="responsible">👤 ${escapeHtml(task.responsibleName)}</div>
+                    `;
+                    listDiv.appendChild(card);
+                }
+            }
+            const badge = document.getElementById(`badge-${stageId}`);
+            if (badge) badge.innerText = stageTasks.length;
+        }
+        if (totalBadge) totalBadge.innerText = `📋 На распределении: ${distributionCount} | Курьер: ${courierCount} | Завершённых: ${completedCount}`;
+        const now = new Date();
+        if (lastUpdatedSpan) lastUpdatedSpan.innerHTML = `🕐 ${now.toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}`;
+    }
+
+    async function refresh(force = false) {
+        if (isLoading) return;
+        setLoading(true);
+        updateProgress(0, "Загрузка...");
+        try {
+            await fetchStageIds();
+            renderColumns();
+            const tasks = await loadAllData(force);
+            renderTasks(tasks);
+            hideProgress();
+        } catch(e) {
+            console.error(e);
+            if (boardDiv) boardDiv.innerHTML = `<div style="background:#fee2e2; padding:24px; border-radius:20px; text-align:center;">⚠️ Ошибка: ${e.message}</div>`;
+            hideProgress();
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function initKanban() {
+        if (refreshBtn) refreshBtn.onclick = () => refresh(true);
+        refresh(false);
+        let interval = setInterval(() => { if (!isLoading) refresh(false); }, 180000);
+        window.addEventListener('beforeunload', () => clearInterval(interval));
+    }
+
+    checkAuth();
+})();
+</script>
+</body>
+</html>
