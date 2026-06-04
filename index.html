@@ -32,6 +32,11 @@
         }
         .header-left {
             display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .title-row {
+            display: flex;
             align-items: baseline;
             flex-wrap: wrap;
             gap: 16px;
@@ -41,6 +46,25 @@
             font-size: 1.5rem;
             font-weight: 600;
             color: #1e2a3a;
+        }
+        /* Увеличенный стиль для логиста */
+        .logist-phone {
+            font-size: 1rem;
+            color: #2c7da0;
+            background: #eef2fa;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-weight: 500;
+            width: fit-content;
+        }
+        .logist-phone span {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #1e4663;
+            letter-spacing: 0.3px;
         }
         .task-counter {
             background: #e9edf2;
@@ -58,6 +82,25 @@
             display: flex;
             gap: 12px;
             align-items: center;
+        }
+        .cost-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+            box-shadow: 0 2px 6px rgba(39,174,96,0.3);
+        }
+        .cost-btn:hover {
+            background: linear-gradient(135deg, #219a54, #27ae60);
+            transform: translateY(-1px);
         }
         .refresh-btn {
             background: linear-gradient(135deg, #2c7da0, #3c8db0);
@@ -432,11 +475,17 @@
 <div class="dashboard">
     <div class="header">
         <div class="header-left">
-            <h1>📦 Доставки Р25 Оренбург · группа 84</h1>
-            <div class="task-counter" id="tasks-total-badge">Загрузка...</div>
-            <div class="last-updated" id="last-updated"></div>
+            <div class="title-row">
+                <h1>📦 Доставки Р25 Оренбург · группа 84</h1>
+                <div class="task-counter" id="tasks-total-badge">Загрузка...</div>
+                <div class="last-updated" id="last-updated"></div>
+            </div>
+            <div class="logist-phone">
+                📞 <strong>Ваш логист:</strong> <span>8(961) 923-21-28</span>
+            </div>
         </div>
         <div class="header-buttons">
+            <button class="cost-btn" id="cost-btn">💰 Стоимость доставки</button>
             <button class="call-courier-btn" id="call-courier-btn">🚚 Вызвать курьера</button>
             <button class="refresh-btn" id="refresh-btn">🔄 Обновить</button>
         </div>
@@ -475,6 +524,9 @@
     const VALID_LOGIN = "TT";
     const VALID_PASSWORD = "EDC980848";
     // ==========================================
+
+    // Ссылка на Яндекс карты с тарифами/стоимостью
+    const COST_URL = 'https://yandex.ru/maps/48/orenburg/?ll=55.133738%2C51.895632&mode=usermaps&source=constructorLink&um=constructor%3A537f6a5d5a58d56fe1785f6794f8239846e34b27c49a4202e2053e17a7f0750d&z=10';
 
     // ПРИНУДИТЕЛЬНАЯ ОЧИСТКА СТАРОГО КЭША
     const oldCacheKeys = ['kanban_v6', 'kanban_v5', 'kanban_v4', 'kanban_v3', 'kanban_v2', 'kanban_v1'];
@@ -547,6 +599,7 @@
     const totalBadge = document.getElementById('tasks-total-badge');
     const refreshBtn = document.getElementById('refresh-btn');
     const callCourierBtn = document.getElementById('call-courier-btn');
+    const costBtn = document.getElementById('cost-btn');
     const lastUpdatedSpan = document.getElementById('last-updated');
     const progressContainer = document.getElementById('progress-container');
     const progressFill = document.getElementById('progress-bar-fill');
@@ -556,6 +609,10 @@
     const modal = document.getElementById('courierModal');
     const modalCloseBtn = document.getElementById('modalCloseBtn');
     const iframe = document.getElementById('courierIframe');
+
+    function openCostPage() {
+        window.open(COST_URL, '_blank', 'noopener,noreferrer');
+    }
 
     function openModal() {
         iframe.src = 'https://b24-022gna.bitrix24site.ru/crm_form_g2e0p/';
@@ -569,6 +626,7 @@
         setTimeout(() => { iframe.src = 'about:blank'; }, 300);
     }
 
+    if (costBtn) costBtn.onclick = openCostPage;
     if (callCourierBtn) callCourierBtn.onclick = openModal;
     if (modalCloseBtn) modalCloseBtn.onclick = closeModal;
     if (modal) modal.onclick = (e) => { if (e.target === modal) closeModal(); };
